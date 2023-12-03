@@ -13,6 +13,8 @@ class Symbol:
         self.X = X
         self.Y = Y
         self.value  = value
+        self.neighborCount = 0
+        self.neighborValuesTotal = 1
 
     def __repr__(self):
         return f"Symbol object {self.value} at [{self.X}, {self.Y}]"
@@ -21,7 +23,6 @@ class Parser:
     def __init__(self):
         self.numberList: list[Number] = []
         self.symbolList: list[Symbol] = []
-        self.partNumberList: list[int] = []
 
     def parseLine(self, line, y_index):
         was_inside_number = False
@@ -58,8 +59,8 @@ class Parser:
                 if ((symbol.Y - 1 <= number.Y and number.Y <= symbol.Y + 1) and
                     ((symbol.X - 1 <= number.startX and number.startX <= symbol.X + 1) or
                     (symbol.X - 1 <= number.endX and number.endX <= symbol.X + 1))):
-                        self.partNumberList.append(int(number.value))
-                        break # dont continue with this number to avoid duplicate entries
+                        symbol.neighborValuesTotal *= int(number.value)
+                        symbol.neighborCount += 1
                 
 # can be optimized by parsing only three lines at a time with
 # one line lookbehind and one line lookahead
@@ -69,4 +70,8 @@ with open("input.txt", "r") as f:
     for index, line in enumerate(f.readlines()):
         parser.parseLine(line, index)
     parser.checkNumberNeighbors()
-    print(sum(parser.partNumberList))
+    gearRatios = []
+    for symbol in parser.symbolList:
+        if symbol.value == "*" and symbol.neighborCount == 2:
+            gearRatios.append(symbol.neighborValuesTotal)
+    print(sum(gearRatios))
